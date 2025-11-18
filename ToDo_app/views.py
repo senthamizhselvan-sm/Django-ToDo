@@ -22,4 +22,14 @@ def incomplete_task(request , pk):
     return redirect('home')
 
 def edit_task(request , pk):
-    return render(request , 'edit_task.html')
+    task = get_object_or_404(Task , pk=pk)
+    if request.method == 'POST':
+        new_task = request.POST['task']
+        task.task = new_task
+        task.save()
+        return redirect('home')
+    else:
+        context = {
+        'task' : task
+        }
+    return render(request , 'edit_task.html' , context)
