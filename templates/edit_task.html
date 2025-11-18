@@ -11,19 +11,227 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.6s ease-out;
+            max-width: 600px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 2.5rem;
+        }
+
+        .form-control {
+            padding: 1.2rem !important;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: scale(1.02);
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            font-weight: 500;
+            padding: 1rem 2rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+        }
+
+        .edit-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        .task-preview {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
 </head>
 <body>
-   <div class = "container">
-    <h3 class="pt-5 pb-5 text-center">Django ToDo App</h3>
-       <form action="{% url 'edit_task' task.pk %}" method="POST" style="width: 500px ; margin: auto;">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <span style="display: flex;">
-                            <input type="text" name = "task" class="form-control" placeholder="Add a task" value = "{{ task.task }}" >
-                            <button type="submit"  class="btn btn-primary" style="width: 200px;"><i class="fa fa-plus"></i> Update</button>
-                        </span>
-                    </div>
-                </form>
+   <div class="container">
+        <div class="text-center">
+            <i class="fa fa-pencil-square-o edit-icon"></i>
+            <h3 class="main-title">Edit Task</h3>
+            <p class="text-muted">Update your task details below</p>
+        </div>
+
+        <form action="{% url 'edit_task' task.pk %}" method="POST" id="editForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="taskInput" class="form-label">
+                    <i class="fa fa-tasks"></i> Task Description
+                </label>
+                <input 
+                    type="text" 
+                    name="task" 
+                    id="taskInput" 
+                    class="form-control" 
+                    placeholder="Enter task description" 
+                    value="{{ task.task }}"
+                    required
+                    autofocus
+                >
+                <small class="text-muted">
+                    <span id="charCount">{{ task.task|length }}</span> characters
+                </small>
+            </div>
+
+            <div class="task-preview">
+                <strong>Preview:</strong>
+                <div id="taskPreview">{{ task.task }}</div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-check"></i> Update Task
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    <i class="fa fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="fa fa-lightbulb-o"></i> Tip: Press Ctrl+Enter to save quickly
+            </small>
+        </div>
    </div>
+
+   <script>
+        const taskInput = document.getElementById('taskInput');
+        const taskPreview = document.getElementById('taskPreview');
+        const charCount = document.getElementById('charCount');
+
+        // Live preview of task as user types
+        taskInput.addEventListener('input', () => {
+            taskPreview.textContent = taskInput.value || 'Your task will appear here...';
+            charCount.textContent = taskInput.value.length;
+            
+            // Add color feedback for length
+            if (taskInput.value.length > 100) {
+                charCount.style.color = '#dc3545';
+            } else if (taskInput.value.length > 50) {
+                charCount.style.color = '#ffc107';
+            } else {
+                charCount.style.color = '#6c757d';
+            }
+        });
+
+        // Ctrl+Enter to submit
+        taskInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('editForm').submit();
+            }
+        });
+
+        // Prevent empty submission
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            if (!taskInput.value.trim()) {
+                e.preventDefault();
+                taskInput.focus();
+                alert('Please enter a task description!');
+            }
+        });
+
+        // Select all text when focused
+        taskInput.addEventListener('focus', () => {
+            taskInput.select();
+        });
+
+        // Add shake animation for validation
+        function shakeInput() {
+            taskInput.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                taskInput.style.animation = '';
+            }, 500);
+        }
+   </script>
 </body>
 </html>
